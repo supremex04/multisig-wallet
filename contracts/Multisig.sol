@@ -34,12 +34,34 @@ contract MultiSig {
         transactions.push(Transaction({to: _receiver, value: msg.value, executed: false}));
         emit transactionSubmitted(txID, msg.sender, _receiver, msg.value);
     }
-
-    function confrimTransaction(uint256 _txID) public {
+    // confirmation given by a particular owner to certain txID
+    function confirmTransaction(uint256 _txID) public {
         require(_txID<transactions.length, "Invalid Transaction ID");
         require(!isConfirmed[_txID][msg.sender], "Transaction is already confirmed");
         isConfirmed[_txID][msg.sender] = true;
         emit transactionConfirmed(_txID);
+        if (checkConfirmation(_txID)){
+            executeTransaction(_txID);
+        }
+
     }
+    //checks if confirmationCount is greater than confirmations required
+    function checkConfirmation(uint256 _txID) public view returns(bool){
+        require(_txID<transactions.length, "Invalid Transaction ID");
+        uint256 confirmationCount;
+
+        for(uint256 i = 0; i<owners.length; i++){
+            if (isConfirmed[_txID][owners[i]]){
+                confirmationCount++;
+            }
+        }
+        return confirmationCount>=confirmationRequired;
+    }
+
+    
+
+
+
+
 
 }
