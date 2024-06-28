@@ -16,6 +16,7 @@ contract MultiSig {
     Transaction[] public transactions;
     event transactionSubmitted(uint256 txID, address sender, address receiver, uint256 value);
     event transactionConfirmed(uint256 txID);
+    event transactionExecuted(uint256 _txID);
     constructor(address[] memory _owners, uint256 _confirmationRequired){
         require( _owners.length >1, "Number of owners must be greater than 1.");
         require(_confirmationRequired>0 && _confirmationRequired<=_owners.length, "Number of confirmation parameter error!");
@@ -46,7 +47,7 @@ contract MultiSig {
 
     }
     //checks if confirmationCount is greater than confirmations required
-    function checkConfirmation(uint256 _txID) public view returns(bool){
+    function checkConfirmation(uint256 _txID) internal view returns(bool){
         require(_txID<transactions.length, "Invalid Transaction ID");
         uint256 confirmationCount;
 
@@ -58,7 +59,17 @@ contract MultiSig {
         return confirmationCount>=confirmationRequired;
     }
 
-    
+    function executeTransaction(uint256 _txID) public payable{
+        require(_txID<transactions.length, "Invalid Transaction ID");
+        require(!transactions[_txID].executed, "Transaction is already executed");
+        // "" is for adding transaction data
+        (bool success,) = transactions[_txID].to.call{value: transactions[_txID].value}("");
+        require(success, "Transaction execution failed");
+        emit transactionExecuted(_txID);
+        transactions[_txID].executed = true;
+    }
+
+
 
 
 
