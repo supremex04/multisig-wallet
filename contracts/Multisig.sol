@@ -69,10 +69,4 @@ contract MultiSig {
         transactions[_txID].executed = true;
     }
 
-
-
-
-
-
-
 }
