@@ -15,7 +15,7 @@ contract MultiSig {
 
     Transaction[] public transactions;
     event transactionSubmitted(uint256 txID, address sender, address receiver, uint256 value);
-
+    event transactionConfirmed(uint256 txID);
     constructor(address[] memory _owners, uint256 _confirmationRequired){
         require( _owners.length >1, "Number of owners must be greater than 1.");
         require(_confirmationRequired>0 && _confirmationRequired<=_owners.length, "Number of confirmation parameter error!");
@@ -33,7 +33,13 @@ contract MultiSig {
         uint256 txID = transactions.length;
         transactions.push(Transaction({to: _receiver, value: msg.value, executed: false}));
         emit transactionSubmitted(txID, msg.sender, _receiver, msg.value);
-        
-
     }
+
+    function confrimTransaction(uint256 _txID) public {
+        require(_txID<transactions.length, "Invalid Transaction ID");
+        require(!isConfirmed[_txID][msg.sender], "Transaction is already confirmed");
+        isConfirmed[_txID][msg.sender] = true;
+        emit transactionConfirmed(_txID);
+    }
+
 }
